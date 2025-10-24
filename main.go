@@ -1,15 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/config"
+	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+
+	_ "github.com/lib/pq"
 )
 
 type state struct {
-	cfg *config.Config
+	cfg       *config.Config
+	dbQueries *database.Queries
 }
 
 func main() {
@@ -17,12 +21,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not read config file: %v", err)
 	}
-	fmt.Printf("Config contents: %+v\n", cfg)
+	log.Printf("config contents: %+v\n", cfg)
 
-	currentState := state{cfg: &cfg}
+	db, err := sql.Open("postgres", cfg.DbURL)
+	if err != nil {
+		log.Fatalf("could not connect to database: %v", err)
+	}
+	dbQueries := database.New(db)
+
+	currentState := state{cfg: &cfg, dbQueries: dbQueries}
 	currentCommands := commands{make(map[string]func(*state, command) error)}
 
 	currentCommands.register("login", handlerLogin)
+	currentCommands.register("register", handlerRegister)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args]")
@@ -35,14 +46,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not run command: %v", err)
 	}
-	// err = cfg.SetUser("marqar")
-	// if err != nil {
-	// 	log.Fatalf("could not set new user: %v", err)
-	// }
 
-	cfg, err = config.Read()
-	if err != nil {
-		log.Fatalf("could not read config file: %v", err)
-	}
-	fmt.Printf("Config contents: %+v\n", cfg)
+	// cfg, err = config.Read()
+	// if err != nil {
+	// 	log.Fatalf("could not read config file: %v", err)
+	// }
+	// log.Printf("config contents: %+v\n", cfg)
 }

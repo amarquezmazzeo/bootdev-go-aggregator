@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 )
@@ -11,7 +12,13 @@ func handlerLogin(s *state, cmd command) error {
 	}
 	user := cmd.args[0]
 
-	err := s.cfg.SetUser(user)
+	// check if user exists in db
+	_, err := s.dbQueries.GetUser(context.Background(), user)
+	if err != nil {
+		return err
+	}
+
+	err = s.cfg.SetUser(user)
 	if err != nil {
 		return err
 	}
