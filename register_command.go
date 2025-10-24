@@ -13,7 +13,7 @@ import (
 
 func handlerRegister(s *state, cmd command) error {
 	if len(cmd.args) != 1 {
-		return errors.New("login handler expects a single argument (User Name)")
+		return errors.New("register handler expects a single argument (User Name)")
 	}
 	userName := cmd.args[0]
 	_, err := s.dbQueries.CreateUser(context.Background(), database.CreateUserParams{
