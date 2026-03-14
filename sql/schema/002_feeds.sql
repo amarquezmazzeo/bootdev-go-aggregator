@@ -1,7 +1,10 @@
 -- +goose Up
 CREATE TABLE feeds (
     name VARCHAR(255) NOT NULL,
-    url VARCHAR(255) PRIMARY KEY,
+    url VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE
 );
 

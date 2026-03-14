@@ -8,7 +8,7 @@ import (
 
 func handlerUsers(s *state, cmd command) error {
 	if len(cmd.args) != 0 {
-		return errors.New("user handler no additional arguments")
+		return errors.New("users handler expects no additional arguments")
 	}
 
 	users, err := s.dbQueries.GetUsers(context.Background())
