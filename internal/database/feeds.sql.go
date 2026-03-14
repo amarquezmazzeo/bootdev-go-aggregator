@@ -182,3 +182,13 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]GetFeedsRow, error) {
 	}
 	return items, nil
 }
+
+const removeFeedFollow = `-- name: RemoveFeedFollow :exec
+DELETE FROM feed_follows
+WHERE feed_id = $1
+`
+
+func (q *Queries) RemoveFeedFollow(ctx context.Context, feedID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeFeedFollow, feedID)
+	return err
+}
