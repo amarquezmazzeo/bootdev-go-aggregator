@@ -37,9 +37,9 @@ func main() {
 	currentCommands.register("reset", handlerReset)
 	currentCommands.register("users", handlerUsers)
 	currentCommands.register("agg", handlerAgg)
-	currentCommands.register("addfeed", handlerAddFeed)
+	currentCommands.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	currentCommands.register("feeds", handlerFeeds)
-	currentCommands.register("follow", handlerFollow)
+	currentCommands.register("follow", middlewareLoggedIn(handlerFollow))
 	currentCommands.register("following", handlerFollowing)
 
 	if len(os.Args) < 2 {
