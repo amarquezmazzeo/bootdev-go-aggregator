@@ -73,18 +73,39 @@ func unescapeFeed(feed *RSSFeed) error {
 }
 
 func handlerAgg(s *state, cmd command) error {
-	if len(cmd.args) != 0 {
-		return errors.New("agg handler expects no additional arguments")
+	if len(cmd.args) != 1 {
+		return errors.New("agg handler expects 1 arguments (time_between_reqs)")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
-	defer cancel()
-	feedURL := "https://www.wagslane.dev/index.xml"
-	feed, err := fetchFeed(ctx, feedURL)
+	timeBetweenRequests, err := time.ParseDuration(cmd.args[0])
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Collecting feeds every %s", timeBetweenRequests)
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		err := scrapeFeeds(s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-	fmt.Println(*feed)
-
+func scrapeFeeds(s *state) error {
+	feed, err := s.dbQueries.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting next feed to fetch: %w", err)
+	}
+	err = s.dbQueries.MarkFeedFetched(context.Background(), feed.ID)
+	if err != nil {
+		return fmt.Errorf("error marking feed as fetched: %w", err)
+	}
+	fetchedFeed, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		return fmt.Errorf("error fetching feed: %w", err)
+	}
+	for _, item := range fetchedFeed.Channel.Item {
+		fmt.Println(item.Title)
+	}
 	return nil
 }

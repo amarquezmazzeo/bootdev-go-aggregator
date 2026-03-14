@@ -53,3 +53,14 @@ WHERE u.name = $1;
 -- name: RemoveFeedFollow :exec
 DELETE FROM feed_follows
 WHERE feed_id = $1;
+
+-- name: MarkFeedFetched :exec
+UPDATE feeds
+SET last_fetched_at = NOW(),
+    updated_at = NOW()
+WHERE id = $1;
+
+-- name: GetNextFeedToFetch :one
+SELECT * from feeds
+ORDER BY last_fetched_at ASC NULLS FIRST
+LIMIT 1;
