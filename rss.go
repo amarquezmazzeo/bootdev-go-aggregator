@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+	"github.com/amarquezmazzeo/gator/internal/database"
 	"github.com/lib/pq"
 )
 

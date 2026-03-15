@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+	"github.com/amarquezmazzeo/gator/internal/database"
 )
 
 func handlerAddFeed(s *state, cmd command, user database.User) error {

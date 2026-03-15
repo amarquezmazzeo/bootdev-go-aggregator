@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+	"github.com/amarquezmazzeo/gator/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -32,5 +32,4 @@ func handlerRegister(s *state, cmd command) error {
 	fmt.Printf("User registered successfulled. You are now logged in as %s.\n", userName)
 	log.Printf("user registered: %s\n", userName)
 	return nil
-
 }

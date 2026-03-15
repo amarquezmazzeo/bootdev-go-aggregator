@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+	"github.com/amarquezmazzeo/gator/internal/database"
 )
 
 func handlerBrowse(s *state, cmd command, user database.User) error {
