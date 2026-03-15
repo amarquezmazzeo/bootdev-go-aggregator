@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"html"
 	"io"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/amarquezmazzeo/bootdev-go-aggregator/internal/database"
+	"github.com/lib/pq"
 )
 
 type RSSFeed struct {
@@ -92,6 +97,8 @@ func handlerAgg(s *state, cmd command) error {
 }
 
 func scrapeFeeds(s *state) error {
+	const uniqueViolation = pq.ErrorCode("23505")
+
 	feed, err := s.dbQueries.GetNextFeedToFetch(context.Background())
 	if err != nil {
 		return fmt.Errorf("error getting next feed to fetch: %w", err)
@@ -105,7 +112,56 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("error fetching feed: %w", err)
 	}
 	for _, item := range fetchedFeed.Channel.Item {
+		if len(item.Title) == 0 {
+			continue
+		}
 		fmt.Println(item.Title)
+		// Parsing PubDate to sql.NullTime
+		pubDate := sql.NullTime{}
+		if t, err := parseTime(item.PubDate); err == nil {
+			pubDate = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		} else {
+			log.Printf("warning: could not parse pubDate (%s): %v", item.PubDate, err)
+		}
+		postParams := database.CreatePostParams{
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: item.Description,
+			PublishedAt: pubDate,
+			FeedID:      feed.ID,
+		}
+		err = s.dbQueries.CreatePost(context.Background(), postParams)
+		// TODO: handle duplicate post creations gracefully
+		if err != nil {
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) {
+				if pqErr.Code == uniqueViolation {
+					// ignore fails due to duplicate post
+				} else {
+					log.Printf("warning: error creating post in db: %v", err)
+				}
+			} else {
+				return fmt.Errorf("error creating post in db: %w", err)
+			}
+		}
 	}
 	return nil
+}
+
+func parseTime(s string) (time.Time, error) {
+	formats := []string{
+		time.RFC1123Z,
+		time.RFC1123,
+		time.RFC3339,
+		// add more as needed
+	}
+	for _, format := range formats {
+		if t, err := time.Parse(format, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("could not parse time: %s", s)
 }
