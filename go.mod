@@ -1,4 +1,4 @@
-module github.com/amarquezmazzeo/bootdev-go-aggregator
+module github.com/amarquezmazzeo/gator
 
 go 1.24.2
 
